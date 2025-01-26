@@ -1,0 +1,120 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-area, .players-list, .schedule {
+    margin-bottom: 30px;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 250px;
+}
+
+.selected-players {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #eee;
+    border-radius: 4px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 250px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 4px;
+}
+
+.dropdown-content label {
+    display: block;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.dropdown-content input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.dropdown-container:hover .dropdown-content {
+    display: block;
+}
+
+button {
+    background-color: #005a9c;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #003e6e;
+}
+
+.players-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.players-list li {
+    background-color: #f0f0f0;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+#scheduleOutput {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Adjust for periods */
+    gap: 10px;
+}
+
+.period {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+}
+
+.period-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
