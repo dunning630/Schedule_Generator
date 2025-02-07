@@ -72,6 +72,7 @@ function generateSchedule() {
     const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [], combinations: new Set() }));
 
     // --- Helper Functions ---
+
     const getEligiblePlayers = (period) => {
         return players.reduce((eligible, player, index) => {
             if (!playerPeriodCounts[index].periodsPlayed.includes(period)) {
@@ -80,11 +81,11 @@ function generateSchedule() {
             return eligible;
         }, []);
     };
-    // Function to check combination
+
+    // Corrected Combination Check
     const hasPlayedTogether = (playerIndex1, playerIndex2, playerPeriodCounts) => {
-     const player1Combos = playerPeriodCounts[playerIndex1].combinations;
-     return player1Combos.has(playerIndex2);
-    }
+        return playerPeriodCounts[playerIndex1].combinations.has(playerIndex2);
+    };
 
 
     // --- Main Scheduling Logic ---
@@ -93,6 +94,7 @@ function generateSchedule() {
         const periodPlayers = [];
         let aCount = 0;
         let bCount = 0;
+
         let eligible = getEligiblePlayers(period);
         eligible.sort((a, b) => playerPeriodCounts[a].plays - playerPeriodCounts[b].plays);
 
@@ -104,58 +106,53 @@ function generateSchedule() {
 
             // --- Prioritize Avoiding Repeated Combinations ---
             if (candidates.length > 1) {
-              candidates.sort((a,b) => {
-                  //count how many times each candidate has already played with players already in this period
-                  let aCombos = 0;
-                  let bCombos = 0;
+                candidates.sort((a, b) => {
+                    let aCombos = 0;
+                    let bCombos = 0;
 
-                  for(const existingPlayerIndex of periodPlayers){
-                      if(hasPlayedTogether(a, existingPlayerIndex, playerPeriodCounts)){
-                          aCombos++;
-                      }
-                      if(hasPlayedTogether(b, existingPlayerIndex, playerPeriodCounts)){
-                          bCombos++;
-                      }
-                  }
-                  //sort based first on how many times they've already played with people in this period
-                  const comboDiff = aCombos - bCombos;
-                  if(comboDiff !== 0) return comboDiff;
+                    for (const existingPlayerIndex of periodPlayers) {
+                        if (hasPlayedTogether(a, existingPlayerIndex, playerPeriodCounts)) {
+                            aCombos++;
+                        }
+                        if (hasPlayedTogether(b, existingPlayerIndex, playerPeriodCounts)) {
+                            bCombos++;
+                        }
+                    }
 
-                  //if they've played the same number of times with existing players, then use rank
-                  return players[a].rank.localeCompare(players[b].rank)
-              })
+                    const comboDiff = aCombos - bCombos;
+                    if (comboDiff !== 0) return comboDiff;
+                    return players[a].rank.localeCompare(players[b].rank);
+                });
             }
 
+            // Select best candidate based on rank and counts
             if (candidates.length > 0) {
-                //find best a
                 bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'A');
                 if (bestPlayerIndex !== -1 && aCount <= bCount) {
                     aCount++;
-                }
-
-                //if no A rank player was eligible and there are more B players than A, attempt to balance
-                if(bestPlayerIndex === -1 && bCount <= aCount){
-                    bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'B');
-                    if(bestPlayerIndex !== -1){
+                } else {
+                     bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'B');
+                    if(bestPlayerIndex !== -1 && bCount <= aCount){
                         bCount++;
                     }
                 }
 
-                // Default: Take first if no rank preference is applicable
-                if (bestPlayerIndex === -1) {
-                  bestPlayerIndex = 0;
+                if(bestPlayerIndex === -1) {
+                    bestPlayerIndex = 0; // Default to the first candidate
                 }
+            }
 
-                // Convert candidate index to actual player index
+
+            if (bestPlayerIndex !== -1) {
                 const actualPlayerIndex = candidates[bestPlayerIndex];
                 periodPlayers.push(players[actualPlayerIndex]);
 
-                // --- Update combinations ---
+                // --- Correctly Update Combinations ---
                 for (const existingPlayerIndex of periodPlayers) {
-                  if (existingPlayerIndex.name !== players[actualPlayerIndex].name) {
-                    playerPeriodCounts[actualPlayerIndex].combinations.add(existingPlayerIndex);
-                    playerPeriodCounts[existingPlayerIndex.name].combinations.add(actualPlayerIndex); //two way storing of data
-                  }
+                     if (existingPlayerIndex !== players[actualPlayerIndex]) {
+                         playerPeriodCounts[actualPlayerIndex].combinations.add(existingPlayerIndex.name);
+                         playerPeriodCounts[existingPlayerIndex.name].combinations.add(actualPlayerIndex);
+                     }
                 }
 
                 playerPeriodCounts[actualPlayerIndex].plays++;
