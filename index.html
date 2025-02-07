@@ -13,25 +13,27 @@
                 <div class="selected-players" id="selectedPlayers">
                     No Players Selected
                 </div>
-                <div class="dropdown-content">
-                    <label><input type="checkbox" value="Clarke"> Clarke</label>
-                    <label><input type="checkbox" value="Graham"> Graham</label>
-                    <label><input type="checkbox" value="Bryce"> Bryce</label>
-                    <label><input type="checkbox" value="Brendan"> Brendan</label>
-                    <label><input type="checkbox" value="Luca"> Luca</label>
-                    <label><input type="checkbox" value="Dinos"> Dinos</label>
-                    <label><input type="checkbox" value="Bennett"> Bennett</label>
-                    <label><input type="checkbox" value="Grayson"> Grayson</label>
-                    <label><input type="checkbox" value="Vincent"> Vincent</label>
-                    <label><input type="checkbox" value="Jake"> Jake</label>
+                <div class="dropdown-content" id="dropdownContent">
+                    <label><input type="checkbox" id="selectAll"> Select All</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Clarke" data-rank="A"> Clarke (A)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Graham" data-rank="B"> Graham (B)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Bryce" data-rank="A"> Bryce (A)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Brendan" data-rank="B"> Brendan (B)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Luca" data-rank="A"> Luca (A)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Dinos" data-rank="B"> Dinos (B)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Bennett" data-rank="A"> Bennett (A)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Grayson" data-rank="B"> Grayson (B)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Vincent" data-rank="A"> Vincent (A)</label>
+                    <label><input type="checkbox" class="player-checkbox" value="Jake" data-rank="B"> Jake (B)</label>
+
                 </div>
             </div>
             <button id="addPlayers">Add Players</button>
         </div>
         <div class="players-list">
-          <h2>Players:</h2>
-          <ul id="playerList"></ul>
-       </div>
+            <h2>Players:</h2>
+            <ul id="playerList"></ul>
+        </div>
         <button id="generateSchedule">Generate Schedule</button>
         <div class="schedule">
             <h2>Rotation Schedule:</h2>
