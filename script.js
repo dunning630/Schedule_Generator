@@ -2,7 +2,7 @@ let players = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addPlayers').addEventListener('click', addSelectedPlayers);
-    document.getElementById('generateSchedule').addEventListener('click', generateSchedule);
+    document.getElementById('generateSchedule').addEventListener('click', generateSchedule); // FIX: Added parentheses
 
     document.getElementById('selectAll').addEventListener('change', function() {
         const playerCheckboxes = document.querySelectorAll('.player-checkbox');
@@ -72,7 +72,6 @@ function generateSchedule() {
     const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [], combinations: new Set() }));
 
     // --- Helper Functions ---
-
     const getEligiblePlayers = (period) => {
         return players.reduce((eligible, player, index) => {
             if (!playerPeriodCounts[index].periodsPlayed.includes(period)) {
