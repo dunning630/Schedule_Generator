@@ -1,15 +1,10 @@
 let players = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Event Listeners ---
-    document.getElementById('addPlayers').addEventListener('click', function() {
-        addSelectedPlayers();
-        updatePlayerList();
-    });
+    document.getElementById('addPlayers').addEventListener('click', addSelectedPlayers);
 
     document.getElementById('generateSchedule').addEventListener('click', generateSchedule);
 
-    // --- Select All Functionality ---
     document.getElementById('selectAll').addEventListener('change', function() {
         const playerCheckboxes = document.querySelectorAll('.player-checkbox');
         playerCheckboxes.forEach(checkbox => {
@@ -18,58 +13,78 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSelectedPlayersDisplay();
     });
 
-    // --- Update selected players display when individual checkboxes change ---
     document.getElementById('dropdownContent').addEventListener('change', function(event) {
         if (event.target.classList.contains('player-checkbox')) {
             updateSelectedPlayersDisplay();
         }
     });
 
-
-    updateSelectedPlayersDisplay(); // Initialize
+    updateSelectedPlayersDisplay();
 });
 
-
-
 function addSelectedPlayers() {
-    const checkboxes = document.querySelectorAll('.player-checkbox:checked'); // Only checked players
+    const checkboxes = document.querySelectorAll('.player-checkbox:checked');
     checkboxes.forEach(checkbox => {
         const playerName = checkbox.value;
-        const playerRank = checkbox.dataset.rank; // Get rank from data-rank
-
+        // Check for duplicates *before* adding
         if (!players.some(p => p.name === playerName)) {
-            players.push({ name: playerName, rank: playerRank });
+            players.push({ name: playerName, rank: 'A' }); // Default to 'A'
+            checkbox.checked = false; //immediately uncheck
         }
-        checkbox.checked = false; // Uncheck after adding
-    });
-    updateSelectedPlayersDisplay(); // after unchecking
-    document.getElementById('selectAll').checked = false; //reset select all
-}
 
+    });
+     document.getElementById('selectAll').checked = false;//reset select all
+
+    updatePlayerList();  // Update the list *after* adding
+    updateSelectedPlayersDisplay(); // And update the selected display
+}
 
 function updateSelectedPlayersDisplay() {
     const selectedPlayersDiv = document.getElementById('selectedPlayers');
     const selected = Array.from(document.querySelectorAll('.player-checkbox:checked'))
-        .map(checkbox => `${checkbox.value} (${checkbox.dataset.rank})`); // Include rank
-
-    selectedPlayersDiv.textContent = selected.length > 0
-        ? 'Selected: ' + selected.join(', ')
-        : 'No Players Selected';
+        .map(checkbox => checkbox.value);
+    selectedPlayersDiv.textContent = selected.length > 0 ? 'Selected: ' + selected.join(', ') : 'No Players Selected';
 }
-
-
-
 function updatePlayerList() {
     const playerList = document.getElementById('playerList');
-    playerList.innerHTML = '';
-    players.forEach(player => {
+    playerList.innerHTML = ''; // Clear the list
+
+    players.forEach((player, index) => {
         const li = document.createElement('li');
-        li.textContent = `${player.name} (${player.rank})`;
-        li.classList.add(player.rank === 'A' ? 'rank-a' : 'rank-b');
+
+        // Player Name (Text)
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = `${player.name} `;
+        li.appendChild(nameSpan);
+
+        // Rank Dropdown
+        const rankSelect = document.createElement('select');
+        rankSelect.className = 'rank-select';
+        rankSelect.id = `rank-${index}`; // Unique ID for each dropdown
+
+        const optionA = document.createElement('option');
+        optionA.value = 'A';
+        optionA.textContent = 'A';
+        rankSelect.appendChild(optionA);
+
+        const optionB = document.createElement('option');
+        optionB.value = 'B';
+        optionB.textContent = 'B';
+        rankSelect.appendChild(optionB);
+
+        // Set the selected option based on the player's current rank
+        rankSelect.value = player.rank;
+
+        // Event listener for rank changes
+        rankSelect.addEventListener('change', function() {
+            players[index].rank = this.value; // Update the rank in the players array
+            // You could add styling updates here if needed, based on the new rank
+        });
+
+        li.appendChild(rankSelect);
         playerList.appendChild(li);
     });
 }
-
 
 function generateSchedule() {
     const numPlayers = players.length;
@@ -100,7 +115,6 @@ function generateSchedule() {
 
         while (periodPlayers.length < 5) {
             let playerIndex = -1;
-
             if (aCount <= bCount && players.some(p => p.rank === 'A')) {
                 playerIndex = findPlayerWithMinPlays(period, 'A');
                 if (playerIndex !== -1) aCount++;
@@ -119,14 +133,13 @@ function generateSchedule() {
                 playerPeriodCounts[playerIndex].plays++;
                 playerPeriodCounts[playerIndex].periodsPlayed.push(period);
             } else {
-                break;
+                break; // No more eligible players
             }
         }
         schedule.push({ period: period + 1, players: periodPlayers.map(p => p.name) });
     }
     displaySchedule(schedule);
 }
-
 
 
 function displaySchedule(schedule) {
