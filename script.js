@@ -3,15 +3,14 @@ let players = [];
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addPlayers').addEventListener('click', function() {
         addSelectedPlayers();
-        updatePlayerList(); // Update the displayed player list
+        updatePlayerList();
     });
 
     document.getElementById('generateSchedule').addEventListener('click', function() {
         generateSchedule();
     });
 
-    // Initial call to set up the "No Players Selected" message
-    updateSelectedPlayersDisplay();
+    updateSelectedPlayersDisplay(); // Initialize the "No Players Selected" message
 });
 
 function addSelectedPlayers() {
@@ -27,57 +26,54 @@ function addSelectedPlayers() {
                 }
             } else {
                 alert("Invalid rank. Please enter 'A' or 'B'.");
-                checkbox.checked = false;
-                return;
+                checkbox.checked = false; // Uncheck if invalid
+                return; // Stop processing this checkbox
             }
-            checkbox.checked = false; // Always uncheck after processing
+            checkbox.checked = false; // Uncheck after adding
         }
     });
-     updateSelectedPlayersDisplay();
+    updateSelectedPlayersDisplay();
 }
-
 
 function updateSelectedPlayersDisplay() {
     const selectedPlayersDiv = document.getElementById('selectedPlayers');
     const selected = Array.from(document.querySelectorAll('.dropdown-content input[type="checkbox"]:checked'))
-        .map(checkbox => checkbox.value); // Get values of *checked* checkboxes
-
-    // Update the text content to show selected players, or the default message
-    selectedPlayersDiv.textContent = selected.length > 0
-        ? 'Selected: ' + selected.join(', ')
-        : 'No Players Selected';
+        .map(checkbox => checkbox.value);
+    selectedPlayersDiv.textContent = selected.length > 0 ? 'Selected: ' + selected.join(', ') : 'No Players Selected';
 }
 
 function updatePlayerList() {
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
-
     players.forEach(player => {
         const li = document.createElement('li');
-        li.textContent = `<span class="math-inline">\{player\.name\} \(</span>{player.rank})`;
+        li.textContent = `${player.name} (${player.rank})`;
         if (player.rank === 'A') {
             li.classList.add('rank-a');
-        } else if (player.rank === 'B') {
+        } else {
             li.classList.add('rank-b');
         }
         playerList.appendChild(li);
     });
 }
+
 function generateSchedule() {
     const numPlayers = players.length;
     const numPeriods = 8;
     const schedule = [];
     const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [] }));
 
-     const findPlayerWithMinPlays = (period, rank) => {
+    const findPlayerWithMinPlays = (period, rank = null) => { // rank is now optional
         let minPlays = Infinity;
         let selectedPlayer = -1;
-
         for (let i = 0; i < numPlayers; i++) {
-            // Check if the player matches the desired rank and has not played in this period
-            if (players[i].rank === rank && playerPeriodCounts[i].plays < minPlays && !playerPeriodCounts[i].periodsPlayed.includes(period)) {
-                minPlays = playerPeriodCounts[i].plays;
-                selectedPlayer = i;
+            if (!playerPeriodCounts[i].periodsPlayed.includes(period)) {
+                if (rank === null || players[i].rank === rank) { // Check rank if provided
+                    if (playerPeriodCounts[i].plays < minPlays) {
+                        minPlays = playerPeriodCounts[i].plays;
+                        selectedPlayer = i;
+                    }
+                }
             }
         }
         return selectedPlayer;
@@ -88,5 +84,50 @@ function generateSchedule() {
         let aCount = 0;
         let bCount = 0;
 
-        // Prioritize getting a balance of A and B players
-        while (periodPlayers.length <
+        while (periodPlayers.length < 5) {
+            let playerIndex = -1;
+
+            // Try to maintain balance, but don't get stuck if not enough A/B
+            if (aCount <= bCount && players.some(p => p.rank === 'A')) {
+                playerIndex = findPlayerWithMinPlays(period, 'A');
+                if (playerIndex !== -1) aCount++;
+            }
+            if (playerIndex === -1 && bCount <= aCount && players.some(p => p.rank === 'B')) {
+                playerIndex = findPlayerWithMinPlays(period, 'B');
+                if (playerIndex !== -1) bCount++;
+            }
+
+            // If still no player, find *any* available player
+            if (playerIndex === -1) {
+                playerIndex = findPlayerWithMinPlays(period);
+            }
+
+            if (playerIndex !== -1) {
+                periodPlayers.push(players[playerIndex]);
+                playerPeriodCounts[playerIndex].plays++;
+                playerPeriodCounts[playerIndex].periodsPlayed.push(period);
+            } else {
+                // Break if absolutely no eligible players
+                break;
+            }
+        }
+        schedule.push({ period: period + 1, players: periodPlayers.map(p => p.name) });
+    }
+    displaySchedule(schedule);
+}
+
+function displaySchedule(schedule) {
+    const scheduleOutput = document.getElementById('scheduleOutput');
+    scheduleOutput.innerHTML = '';
+    schedule.forEach(periodData => {
+        const periodDiv = document.createElement('div');
+        periodDiv.className = 'period';
+        periodDiv.innerHTML = `<div class="period-title">Period ${periodData.period}</div>`;
+        periodData.players.forEach(playerName => {
+            const playerDiv = document.createElement('div');
+            playerDiv.textContent = playerName;
+            periodDiv.appendChild(playerDiv);
+        });
+        scheduleOutput.appendChild(periodDiv);
+    });
+}
