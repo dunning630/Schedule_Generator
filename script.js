@@ -65,73 +65,93 @@ function updatePlayerList() {
         playerList.appendChild(li);
     });
 }
-
 function generateSchedule() {
     const numPlayers = players.length;
     const numPeriods = 8;
     const schedule = [];
     const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [] }));
 
-    // *** Prioritize playing time FIRST ***
-    const findPlayerWithMinPlays = (period) => {
+    // --- Helper Functions ---
+
+    const findPlayerWithMinPlays = (period, rank = null) => {
         let minPlays = Infinity;
         let selectedPlayerIndex = -1;
+
         for (let i = 0; i < numPlayers; i++) {
-            if (!playerPeriodCounts[i].periodsPlayed.includes(period) &&
-                playerPeriodCounts[i].plays < minPlays) {
-                minPlays = playerPeriodCounts[i].plays;
-                selectedPlayerIndex = i;
+            if (!playerPeriodCounts[i].periodsPlayed.includes(period)) {
+                if (rank === null || players[i].rank === rank) {
+                    if (playerPeriodCounts[i].plays < minPlays) {
+                        minPlays = playerPeriodCounts[i].plays;
+                        selectedPlayerIndex = i;
+                    }
+                }
             }
         }
         return selectedPlayerIndex;
     };
 
-    // *** THEN balance ranks within that constraint ***
-     const findBestPlayerForPeriod = (period) => {
-        const eligiblePlayers = [];
+    const getEligiblePlayers = (period) => {
+        const eligible = [];
         for (let i = 0; i < numPlayers; i++) {
             if (!playerPeriodCounts[i].periodsPlayed.includes(period)) {
-                eligiblePlayers.push(i);
+                eligible.push(i);
             }
         }
-
-        if (eligiblePlayers.length === 0) {
-            return -1; // No eligible players
-        }
-
-        // Sort eligible players by plays (ascending) THEN by rank (A before B)
-        eligiblePlayers.sort((a, b) => {
-            const playsDiff = playerPeriodCounts[a].plays - playerPeriodCounts[b].plays;
-            if (playsDiff !== 0) {
-                return playsDiff; // Prioritize fewer plays
-            } else {
-                // If plays are equal, prioritize rank (A before B)
-                return players[a].rank.localeCompare(players[b].rank);
-            }
-        });
-
-        return eligiblePlayers[0]; // Return index of the best player
+        return eligible;
     };
 
+    // --- Main Scheduling Logic ---
 
     for (let period = 0; period < numPeriods; period++) {
         const periodPlayers = [];
+        let aCount = 0;
+        let bCount = 0;
 
-        while (periodPlayers.length < 5) {
-            // Use the improved function
-            const playerIndex = findBestPlayerForPeriod(period);
+        // 1. Get eligible players for this period
+        let eligible = getEligiblePlayers(period);
 
-            if (playerIndex !== -1) {
-                periodPlayers.push(players[playerIndex]);
-                playerPeriodCounts[playerIndex].plays++;
-                playerPeriodCounts[playerIndex].periodsPlayed.push(period);
+        // 2. Sort eligible players by plays (ascending)
+        eligible.sort((a, b) => playerPeriodCounts[a].plays - playerPeriodCounts[b].plays);
+
+        // 3. Fill the period, prioritizing even playing time, then rank
+        while (periodPlayers.length < 5 && eligible.length > 0) {
+            let bestPlayerIndex = -1;
+
+            // Prioritize rank balance *within* the eligible players with the fewest plays
+            const minPlays = playerPeriodCounts[eligible[0]].plays;
+            const candidates = eligible.filter(index => playerPeriodCounts[index].plays === minPlays);
+
+            // Filter candidates by rank and availability
+            const aCandidates = candidates.filter(index => players[index].rank === 'A');
+            const bCandidates = candidates.filter(index => players[index].rank === 'B');
+            
+            if (aCount <= bCount && aCandidates.length > 0 ) {
+                bestPlayerIndex = aCandidates[0];
+                aCount++;
+            }
+            else if(bCount <= aCount && bCandidates.length > 0){
+                bestPlayerIndex = bCandidates[0];
+                bCount++;
+            }
+
+            if (bestPlayerIndex === -1 && candidates.length > 0) {
+                // If no A/B preference, take the first candidate (already sorted by min plays)
+                bestPlayerIndex = candidates[0];
+            }
+
+            if (bestPlayerIndex !== -1) {
+                periodPlayers.push(players[bestPlayerIndex]);
+                playerPeriodCounts[bestPlayerIndex].plays++;
+                playerPeriodCounts[bestPlayerIndex].periodsPlayed.push(period);
+
+                // Remove the selected player from the eligible list
+                eligible = eligible.filter(index => index !== bestPlayerIndex);
             } else {
-                break; // No eligible players
+                break; // No more eligible players
             }
         }
         schedule.push({ period: period + 1, players: periodPlayers.map(p => p.name) });
     }
-
     displaySchedule(schedule);
 }
 
