@@ -94,12 +94,29 @@ button:hover {
     padding: 0;
 }
 
+/* Key changes for alignment */
 .players-list li {
     background-color: #f0f0f0;
     padding: 8px;
     margin-bottom: 5px;
     border-radius: 4px;
+    display: flex;         /* Use Flexbox */
+    justify-content: space-between; /* Space out name and dropdown */
+    align-items: center;  /* Vertically center items */
 }
+
+.rank-select {
+    margin-left: 10px; /* Add some spacing */
+}
+
+/* Optional styling for A/B ranks (from previous examples) */
+.rank-a {
+    background-color: #cceeff;
+}
+.rank-b {
+    background-color: #ffddcc;
+}
+
 
 #scheduleOutput {
     display: grid;
