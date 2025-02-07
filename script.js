@@ -2,7 +2,7 @@ let players = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addPlayers').addEventListener('click', addSelectedPlayers);
-    document.getElementById('generateSchedule').addEventListener('click', generateSchedule); // FIX: Added parentheses
+    document.getElementById('generateSchedule').addEventListener('click', generateSchedule); // Correct
 
     document.getElementById('selectAll').addEventListener('change', function() {
         const playerCheckboxes = document.querySelectorAll('.player-checkbox');
@@ -24,11 +24,11 @@ function addSelectedPlayers() {
     checkboxes.forEach(checkbox => {
         const playerName = checkbox.value;
         if (!players.some(p => p.name === playerName)) {
-            players.push({ name: playerName, rank: 'A' }); // Default to 'A'
+            players.push({ name: playerName, rank: 'A' });
             checkbox.checked = false;
         }
     });
-    document.getElementById('selectAll').checked = false; //reset select all
+    document.getElementById('selectAll').checked = false;
     updatePlayerList();
     updateSelectedPlayersDisplay();
 }
@@ -69,6 +69,7 @@ function generateSchedule() {
     const numPlayers = players.length;
     const numPeriods = 8;
     const schedule = [];
+    // Initialize playerPeriodCounts *correctly*
     const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [], combinations: new Set() }));
 
     // --- Helper Functions ---
@@ -81,14 +82,11 @@ function generateSchedule() {
         }, []);
     };
 
-    // Corrected Combination Check
     const hasPlayedTogether = (playerIndex1, playerIndex2, playerPeriodCounts) => {
         return playerPeriodCounts[playerIndex1].combinations.has(playerIndex2);
     };
 
-
     // --- Main Scheduling Logic ---
-
     for (let period = 0; period < numPeriods; period++) {
         const periodPlayers = [];
         let aCount = 0;
@@ -103,17 +101,18 @@ function generateSchedule() {
 
             let bestPlayerIndex = -1;
 
-            // --- Prioritize Avoiding Repeated Combinations ---
+            // Prioritize avoiding repeated combinations
             if (candidates.length > 1) {
                 candidates.sort((a, b) => {
                     let aCombos = 0;
                     let bCombos = 0;
 
                     for (const existingPlayerIndex of periodPlayers) {
-                        if (hasPlayedTogether(a, existingPlayerIndex, playerPeriodCounts)) {
+                        // Use *indices* for hasPlayedTogether, not player objects
+                        if (hasPlayedTogether(a, periodPlayers.indexOf(existingPlayerIndex), playerPeriodCounts)) {
                             aCombos++;
                         }
-                        if (hasPlayedTogether(b, existingPlayerIndex, playerPeriodCounts)) {
+                        if (hasPlayedTogether(b, periodPlayers.indexOf(existingPlayerIndex), playerPeriodCounts)) {
                             bCombos++;
                         }
                     }
@@ -124,47 +123,50 @@ function generateSchedule() {
                 });
             }
 
-            // Select best candidate based on rank and counts
+            // Select best candidate (prioritize A, then B, then any)
             if (candidates.length > 0) {
                 bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'A');
                 if (bestPlayerIndex !== -1 && aCount <= bCount) {
                     aCount++;
                 } else {
-                     bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'B');
-                    if(bestPlayerIndex !== -1 && bCount <= aCount){
+                    bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'B');
+                    if (bestPlayerIndex !== -1 && bCount <= aCount) {
                         bCount++;
                     }
                 }
-
-                if(bestPlayerIndex === -1) {
-                    bestPlayerIndex = 0; // Default to the first candidate
+                if (bestPlayerIndex === -1) {
+                    bestPlayerIndex = 0;
                 }
             }
-
 
             if (bestPlayerIndex !== -1) {
                 const actualPlayerIndex = candidates[bestPlayerIndex];
                 periodPlayers.push(players[actualPlayerIndex]);
 
-                // --- Correctly Update Combinations ---
-                for (const existingPlayerIndex of periodPlayers) {
-                     if (existingPlayerIndex !== players[actualPlayerIndex]) {
-                         playerPeriodCounts[actualPlayerIndex].combinations.add(existingPlayerIndex.name);
-                         playerPeriodCounts[existingPlayerIndex.name].combinations.add(actualPlayerIndex);
-                     }
+                // --- *Correctly* Update Combinations ---
+                for (const existingPlayer of periodPlayers) { // Iterate over *player objects*
+                    const existingPlayerIndex = players.indexOf(existingPlayer); // Get *index*
+                    if (existingPlayerIndex !== actualPlayerIndex) {
+                        playerPeriodCounts[actualPlayerIndex].combinations.add(existingPlayerIndex); // Add *index*
+                        playerPeriodCounts[existingPlayerIndex].combinations.add(actualPlayerIndex); // Add *index*
+                    }
                 }
 
                 playerPeriodCounts[actualPlayerIndex].plays++;
                 playerPeriodCounts[actualPlayerIndex].periodsPlayed.push(period);
                 eligible = eligible.filter(index => index !== actualPlayerIndex);
             } else {
-                break; // No more eligible players
+                break;
             }
         }
+
         schedule.push({ period: period + 1, players: periodPlayers.map(p => p.name) });
     }
+
     displaySchedule(schedule);
 }
+
+
 function displaySchedule(schedule) {
     const scheduleOutput = document.getElementById('scheduleOutput');
     scheduleOutput.innerHTML = '';
