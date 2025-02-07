@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('generateSchedule').addEventListener('click', function() {
-        generateSchedule();
+        generateSchedule(); // Correctly call the function *only* on button click
     });
 });
 
@@ -46,7 +46,7 @@ function updatePlayerList() {
 
     players.forEach(player => {
         const li = document.createElement('li');
-        li.textContent = `${player.name} (${player.rank})`; // Display name and rank
+        li.textContent = `<span class="math-inline">\{player\.name\} \(</span>{player.rank})`; // Display name and rank
 
         // Optional: Style based on rank (add to your CSS if you like)
         if (player.rank === 'A') {
@@ -127,15 +127,4 @@ function displaySchedule(schedule) {
     scheduleOutput.innerHTML = ''; // Clear previous output
 
     schedule.forEach(periodData => {
-        const periodDiv = document.createElement('div');
-        periodDiv.className = 'period';
-        periodDiv.innerHTML = `<div class="period-title">Period ${periodData.period}</div>`;
-
-        periodData.players.forEach(playerName => {
-            const playerDiv = document.createElement('div');
-            playerDiv.textContent = playerName;
-            periodDiv.appendChild(playerDiv);
-        });
-        scheduleOutput.appendChild(periodDiv);
-    });
-}
+        const periodDiv = document.createElement('
