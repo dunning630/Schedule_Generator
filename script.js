@@ -28,7 +28,7 @@ function addSelectedPlayers() {
             checkbox.checked = false;
         }
     });
-    document.getElementById('selectAll').checked = false; //reset select all
+     document.getElementById('selectAll').checked = false;
     updatePlayerList();
     updateSelectedPlayersDisplay();
 }
@@ -64,14 +64,14 @@ function updatePlayerList() {
         playerList.appendChild(li);
     });
 }
-
 function generateSchedule() {
     const numPlayers = players.length;
     const numPeriods = 8;
     const schedule = [];
-    const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [], combinations: new Set() }));
+    const playerPeriodCounts = players.map(() => ({ plays: 0, periodsPlayed: [], combinations: new Set()}));
 
     // --- Helper Functions ---
+
     const getEligiblePlayers = (period) => {
         return players.reduce((eligible, player, index) => {
             if (!playerPeriodCounts[index].periodsPlayed.includes(period)) {
@@ -86,6 +86,7 @@ function generateSchedule() {
     };
 
     // --- Main Scheduling Logic ---
+
     for (let period = 0; period < numPeriods; period++) {
         const periodPlayers = [];
         let aCount = 0;
@@ -97,51 +98,53 @@ function generateSchedule() {
         while (periodPlayers.length < 5 && eligible.length > 0) {
             const minPlays = playerPeriodCounts[eligible[0]].plays;
             let candidates = eligible.filter(index => playerPeriodCounts[index].plays === minPlays);
-
             let bestPlayerIndex = -1;
 
+            // --- Prioritize Avoiding Repeated Combinations & Balancing Ranks ---
             if (candidates.length > 1) {
                 candidates.sort((a, b) => {
                     let aCombos = 0;
                     let bCombos = 0;
-
                     for (const existingPlayerIndex of periodPlayers) {
-                        if (hasPlayedTogether(a, periodPlayers.indexOf(existingPlayerIndex), playerPeriodCounts)) {
+                        if (hasPlayedTogether(a, existingPlayerIndex, playerPeriodCounts)) {
                             aCombos++;
                         }
-                        if (hasPlayedTogether(b, periodPlayers.indexOf(existingPlayerIndex), playerPeriodCounts)) {
+                        if (hasPlayedTogether(b, existingPlayerIndex, playerPeriodCounts)) {
                             bCombos++;
                         }
                     }
-
                     const comboDiff = aCombos - bCombos;
                     if (comboDiff !== 0) return comboDiff;
+
+                    // Rank balance *within* same play/combo count
                     return players[a].rank.localeCompare(players[b].rank);
                 });
             }
 
+            // --- Selection Logic ---
             if (candidates.length > 0) {
-                bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'A');
-                if (bestPlayerIndex !== -1 && aCount <= bCount) {
-                    aCount++;
-                } else {
-                     bestPlayerIndex = candidates.findIndex(index => players[index].rank === 'B');
-                    if(bestPlayerIndex !== -1 && bCount <= aCount){
-                        bCount++;
-                    }
-                }
+              //Find best index based on rank and counts
+              let aIndex = candidates.findIndex(index => players[index].rank === 'A');
+              let bIndex = candidates.findIndex(index => players[index].rank === 'B');
 
-                if(bestPlayerIndex === -1) {
-                    bestPlayerIndex = 0; // Default to the first candidate
-                }
+              if (aCount <= bCount && aIndex !== -1) {
+                bestPlayerIndex = aIndex;
+                aCount++;
+              }
+              else if (bCount <= aCount && bIndex !== -1){
+                bestPlayerIndex = bIndex;
+                bCount++;
+              }
+              else{
+                bestPlayerIndex = 0;
+              }
             }
-
 
             if (bestPlayerIndex !== -1) {
                 const actualPlayerIndex = candidates[bestPlayerIndex];
-                // *** FIX: Include Rank Here ***
                 periodPlayers.push(players[actualPlayerIndex]);
 
+                // Update combinations (Corrected!)
                 for (const existingPlayer of periodPlayers) {
                     const existingPlayerIndex = players.indexOf(existingPlayer);
                     if (existingPlayerIndex !== actualPlayerIndex) {
@@ -154,14 +157,13 @@ function generateSchedule() {
                 playerPeriodCounts[actualPlayerIndex].periodsPlayed.push(period);
                 eligible = eligible.filter(index => index !== actualPlayerIndex);
             } else {
-                break;
+                break; // No more eligible players
             }
         }
 
-        // *** FIX: Include Rank Here ***
         schedule.push({
             period: period + 1,
-            players: periodPlayers.map(p => `${p.name} (${p.rank})`) // Include rank!
+            players: periodPlayers.map(p => `${p.name} (${p.rank})`)
         });
     }
 
@@ -175,7 +177,7 @@ function displaySchedule(schedule) {
         const periodDiv = document.createElement('div');
         periodDiv.className = 'period';
         periodDiv.innerHTML = `<div class="period-title">Period ${periodData.period}</div>`;
-        periodData.players.forEach(playerInfo => { // playerInfo is now "Name (Rank)"
+        periodData.players.forEach(playerInfo => {
             const playerDiv = document.createElement('div');
             playerDiv.textContent = playerInfo;
             periodDiv.appendChild(playerDiv);
