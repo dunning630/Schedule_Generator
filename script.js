@@ -139,6 +139,7 @@ function generateSchedule() {
 
             if (bestPlayerIndex !== -1) {
                 const actualPlayerIndex = candidates[bestPlayerIndex];
+                // *** FIX: Include Rank Here ***
                 periodPlayers.push(players[actualPlayerIndex]);
 
                 for (const existingPlayer of periodPlayers) {
@@ -157,10 +158,10 @@ function generateSchedule() {
             }
         }
 
-        // *** Include Rank in Output ***
+        // *** FIX: Include Rank Here ***
         schedule.push({
             period: period + 1,
-            players: periodPlayers.map(p => `${p.name} (${p.rank})`) // Include rank
+            players: periodPlayers.map(p => `${p.name} (${p.rank})`) // Include rank!
         });
     }
 
@@ -176,7 +177,7 @@ function displaySchedule(schedule) {
         periodDiv.innerHTML = `<div class="period-title">Period ${periodData.period}</div>`;
         periodData.players.forEach(playerInfo => { // playerInfo is now "Name (Rank)"
             const playerDiv = document.createElement('div');
-            playerDiv.textContent = playerInfo; // Display name and rank
+            playerDiv.textContent = playerInfo;
             periodDiv.appendChild(playerDiv);
         });
         scheduleOutput.appendChild(periodDiv);
