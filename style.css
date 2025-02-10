@@ -38,7 +38,8 @@ label {
     display: inline-block;
     border: 1px solid #ccc;
     border-radius: 4px;
-    width: 250px;
+    width: 100%; /* Make dropdown full-width on small screens */
+    max-width: 250px; /* Limit maximum width */
 }
 
 .selected-players {
@@ -46,13 +47,16 @@ label {
     cursor: pointer;
     background-color: #eee;
     border-radius: 4px;
+    white-space: nowrap;       /* Prevent text wrapping */
+    overflow: hidden;        /* Hide overflowing text */
+    text-overflow: ellipsis;  /* Add ellipsis for long text */
 }
 
 .dropdown-content {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
-    min-width: 250px;
+    min-width: 100%; /* Match dropdown container */
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
     max-height: 200px;
@@ -73,7 +77,7 @@ label {
 .dropdown-container:hover .dropdown-content {
     display: block;
 }
-
+/*Button Styling*/
 button {
     background-color: #005a9c;
     color: #fff;
@@ -83,6 +87,10 @@ button {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    width: 100%;          /* Make buttons full-width */
+    max-width: 250px;    /* Limit maximum width */
+    display: block;       /* Block-level for margin auto */
+    margin: 10px auto;    /* Center buttons horizontally */
 }
 
 button:hover {
@@ -94,22 +102,20 @@ button:hover {
     padding: 0;
 }
 
-/* Key changes for alignment */
 .players-list li {
     background-color: #f0f0f0;
     padding: 8px;
     margin-bottom: 5px;
     border-radius: 4px;
-    display: flex;         /* Use Flexbox */
-    justify-content: space-between; /* Space out name and dropdown */
-    align-items: center;  /* Vertically center items */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .rank-select {
-    margin-left: 10px; /* Add some spacing */
+    margin-left: 10px;
 }
 
-/* Optional styling for A/B ranks (from previous examples) */
 .rank-a {
     background-color: #cceeff;
 }
@@ -117,10 +123,10 @@ button:hover {
     background-color: #ffddcc;
 }
 
-
+/* Initial grid layout (for larger screens) */
 #scheduleOutput {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Adjust for periods */
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
 }
 
@@ -134,4 +140,19 @@ button:hover {
 .period-title {
     font-weight: bold;
     margin-bottom: 5px;
+}
+
+/* Media Query for Smaller Screens */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px; /* Reduce padding */
+    }
+
+     #scheduleOutput {
+        grid-template-columns: 1fr; /* Single column layout */
+    }
+
+    .dropdown-container {
+        width: 100%; /* Full width */
+    }
 }
